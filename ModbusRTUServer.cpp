@@ -301,20 +301,13 @@ void ModbusRTUServer::sendResponse(uint8_t* data, size_t length, bool broadcast)
 }
 
 void ModbusRTUServer::sendException(uint8_t function, uint8_t exceptionCode, bool broadcast) {
-    if (broadcast)
-        return;
-
     uint8_t response[5];
     response[0] = serverId_;
     response[1] = function | 0x80;
     response[2] = exceptionCode;
 
-    uint16_t crc = computeCrc(response, 3);
-
-    response[3] = crc & 0xFF;
-    response[4] = (crc >> 8) & 0xFF;
-
-    stream_->write(response, 5);
+    // sendResponse() appends the CRC into response[3..4].
+    sendResponse(response, 3, broadcast);
 }
 
 void ModbusRTUServer::setInterframeTimeout(uint32_t timeout) {
